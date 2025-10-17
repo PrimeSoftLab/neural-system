@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Outage Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/core.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Neural System</h3>
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item" data-section="dashboard">
+                <i class="fas fa-satellite-dish"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="menu-item active" data-section="digital">
+                <i class="fas fa-microchip"></i>
+                <span>Digital Control</span>
+            </a>
+            <a href="#" class="menu-item" data-section="analytics">
+                <i class="fas fa-chart-network"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="menu-item" data-section="customers">
+                <i class="fas fa-users-cog"></i>
+                <span>Customers</span>
+            </a>
+            <a href="#" class="menu-item" data-section="grid">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Grid Map</span>
+            </a>
+            <a href="#" class="menu-item" data-section="systems">
+                <i class="fas fa-cogs"></i>
+                <span>Systems</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <div class="top-header">
+            <div class="header-title d-flex align-items-center">
+                <button class="mobile-toggle" id="mobileToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 id="pageTitle">Digital Control</h2>
+            </div>
+            <div class="header-actions">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="profile-btn">
+                    <i class="fas fa-user-astronaut"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Dashboard Section -->
+            <div class="content-section" id="dashboard-section">
+                <!-- Stats Cards Row -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">Active Outages</div>
+                                <div class="stats-card-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(236, 72, 153, 0.2)); color: #ef4444;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                            </div>
+                            <div class="stats-card-value">12</div>
+                            <div class="stats-card-change negative">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>3 more than yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">Customers Affected</div>
+                                <div class="stats-card-icon" style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 255, 0.2)); color: var(--neon-cyan);">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                            <div class="stats-card-value">2,456</div>
+                            <div class="stats-card-change negative">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>12% increase</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">Avg. Resolution</div>
+                                <div class="stats-card-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(0, 255, 255, 0.2)); color: #10b981;">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <div class="stats-card-value">2.3h</div>
+                            <div class="stats-card-change positive">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>15% faster</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">System Health</div>
+                                <div class="stats-card-icon" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(236, 72, 153, 0.2)); color: var(--neon-purple);">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                            </div>
+                            <div class="stats-card-value">94.5%</div>
+                            <div class="stats-card-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>2.3% improvement</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-card-title">Outage Trends</div>
+                                <div class="chart-card-options">
+                                    <button class="chart-option-btn">
+                                        <i class="fas fa-sliders-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="outageTrendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-card-title">Outage Categories</div>
+                                <div class="chart-card-options">
+                                    <button class="chart-option-btn">
+                                        <i class="fas fa-sliders-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="donut-chart-container">
+                                <canvas id="outageCategoriesChart"></canvas>
+                            </div>
+                            <div class="mt-4">
+                                <div class="progress-container">
+                                    <div class="progress-label">
+                                        <span>Equipment Failure</span>
+                                        <span>33.6%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 33.6%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue));"></div>
+                                    </div>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-label">
+                                        <span>Weather Related</span>
+                                        <span>22.39%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 22.39%; background: linear-gradient(90deg, #10b981, var(--neon-cyan));"></div>
+                                    </div>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-label">
+                                        <span>Planned Maintenance</span>
+                                        <span>7.56%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 7.56%; background: linear-gradient(90deg, var(--neon-purple), var(--neon-pink));"></div>
+                                    </div>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-label">
+                                        <span>Other</span>
+                                        <span>36.45%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 36.45%; background: linear-gradient(90deg, #ef4444, var(--neon-pink));"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Row -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-card-title">Response Time Analysis</div>
+                                <div class="chart-card-options">
+                                    <button class="chart-option-btn">
+                                        <i class="fas fa-sliders-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="responseTimeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-card-title">System Activity Log</div>
+                                <div class="chart-card-options">
+                                    <button class="chart-option-btn">
+                                        <i class="fas fa-sliders-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="activity-feed">
+                                <div class="activity-item">
+                                    <div class="activity-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(236, 72, 153, 0.2)); color: #ef4444;">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Critical outage detected in Sector 7</div>
+                                        <div class="activity-time">10 minutes ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(0, 255, 255, 0.2)); color: #10b981;">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Power restored in District 3</div>
+                                        <div class="activity-time">25 minutes ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon" style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(124, 58, 237, 0.2)); color: var(--neon-cyan);">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Technician deployed to outage #4521</div>
+                                        <div class="activity-time">1 hour ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(236, 72, 153, 0.2)); color: var(--neon-purple);">
+                                        <i class="fas fa-tools"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Maintenance initiated for Grid 12</div>
+                                        <div class="activity-time">2 hours ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 146, 60, 0.2)); color: #fbbf24;">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">System update completed successfully</div>
+                                        <div class="activity-time">3 hours ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Digital Control Section -->
+            <div class="content-section active" id="digital-section">
+                <div class="service-section">
+                    <h2>SMART SERVICES</h2>
+                    <div class="service-container">
+                        <a class="service-button" href="https://www.figma.com/design/hfBiY2NI721z52cGs2cttM/Untitled?t=CJNZqtfmTXBlJyUe-0" target="_blank">Figma Board</a>
+                        <a class="service-button" href="https://miro.com/app/board/uXjVI-bHB9c=/" target="_blank">Miro</a>
+                        <a class="service-button" href="https://chatgpt.com/" target="_blank">GPT</a>
+                        <a class="service-button" href="https://chat.deepseek.com/" target="_blank">DeepSeek</a>
+                        <a class="service-button" href="https://gemini.google.com/" target="_blank">Gemini</a>
+                        <a class="service-button" href="https://dezgo.com/text2image/sdxl" target="_blank">Dezgo</a>
+                        <a class="service-button" href="https://flair.ai/" target="_blank">Flair AI</a>
+                        <a class="service-button" href="https://www.photoroom.com" target="_blank">Photoroom</a>
+                        <a class="service-button" href="https://remove.bg/" target="_blank">Remove BG</a>
+                        <a class="service-button" href="https://vectorizer.ai/" target="_blank">Image to Vector</a>
+                        <a class="service-button" href="https://www.dzine.ai/" target="_blank">Dzine</a>
+                        <a class="service-button" href="https://www.x-design.com/ai-background-generator/edit?height=4000&width=4000" target="_blank">X design</a>
+                        <a class="service-button" href="https://claid.ai/" target="_blank">Claid AI</a>
+                        <a class="service-button" href="https://app.pebblely.com/create" target="_blank">Pebblely</a>
+                        <a class="service-button" href="https://www.leiapix.com/" target="_blank">Leia</a>
+                        <a class="service-button" href="https://www.insmind.com/" target="_blank">Insmind</a>
+                        <a class="service-button" href="https://www.fobrie.com/" target="_blank">Fobrie</a>
+                        <a class="service-button" href="https://www.pacdora.com/ai-background?id=112023" target="_blank">Pacdora</a>
+                        <a class="service-button" href="https://www.krea.ai/" target="_blank">Krea</a>
+                        <a class="service-button" href="https://www.pinterest.com/" target="_blank">Pinterest</a>
+                        <a class="service-button" href="https://www.imagetotext.io/" target="_blank">Image to text</a>
+                    </div>
+                </div>
+                
+                <div class="service-section">
+                    <h2>3D Modeling</h2>
+                    <div class="service-container">
+                        <a class="service-button" href="https://grabcad.com/library" target="_blank">Grab CAD</a>
+                        <a class="service-button" href="https://img-fx.com/" target="_blank">img-fx</a>
+                        <a class="service-button" href="https://magichour.ai/products/ai-image-generator" target="_blank">Magic Hour</a>
+                        <a class="service-button" href="https://perchance.org/ai-text-to-image-generator" target="_blank">Animi Environment</a>
+                        <a class="service-button" href="https://deepimg.ai/ai-image-generator/" target="_blank">Deep img</a>
+                        <a class="service-button" href="https://vectorizer.ai/" target="_blank">Image to Vector</a>
+                        <a class="service-button" href="https://muryou-aigazou.com/" target="_blank">muryou</a>
+                        <a class="service-button" href="https://raphael.app/" target="_blank">Creator Kit</a>
+                        <a class="service-button" href="https://claid.ai/" target="_blank">Raphael</a>
+                        <a class="service-button" href="https://app.pebblely.com/create" target="_blank">Pebblely</a>
+                        <a class="service-button" href="https://www.leiapix.com/" target="_blank">Leia</a>
+                        <a class="service-button" href="https://www.insmind.com/" target="_blank">Insmind</a>
+                        <a class="service-button" href="https://www.fobrie.com/" target="_blank">Fobrie</a>
+                        <a class="service-button" href="https://www.newarc.ai/" target="_blank">Newarc AI</a>
+                        <a class="service-button" href="https://www.krea.ai/" target="_blank">Krea</a>
+                        <a class="service-button" href="https://www.google.com/maps/@22.8098048,89.5418368,8015m/data=!3m1!1e3?entry=ttu&g_ep=EgoyMDI1MDMxMC4wIKXMDSoASAFQAw%3D%3D" target="_blank">Google Map</a>
+                        <a class="service-button" href="https://recruitmentgeek.com/tools/linkedin#gsc.tab=0" target="_blank">Linkedin Xray</a>
+                    </div>
+                </div>
+                
+<div class="service-section">
+    <h2>ISR Focus Agency</h2>
+    <div class="service-container">
+        <!-- 🧍 People & Social Media Search -->
+        <a class="service-button" href="https://www.social-searcher.com/" target="_blank">Social Searcher</a>
+        <a class="service-button" href="https://search4faces.com/en/" target="_blank">Search4Faces</a>
+        <a class="service-button" href="https://www.peekyou.com/" target="_blank">PeekYou</a>
+        <a class="service-button" href="https://www.spokeo.com/" target="_blank">Spokeo</a>
+        <a class="service-button" href="https://www.truepeoplesearch.com/" target="_blank">TruePeopleSearch</a>
+
+        <!-- 👤 Username & Profile Investigation -->
+        <a class="service-button" href="https://namechk.com/" target="_blank">Namechk</a>
+        <a class="service-button" href="https://knowem.com/" target="_blank">Knowem</a>
+        <a class="service-button" href="https://github.com/sherlock-project/sherlock" target="_blank">Sherlock (GitHub)</a>
+        <a class="service-button" href="https://instantusername.com/" target="_blank">Instant Username</a>
+
+        <!-- 📸 Image & Reverse Search -->
+        <a class="service-button" href="https://cleanup.pictures/" target="_blank">Cleanup Pictures</a>
+        <a class="service-button" href="https://facecheck.id/" target="_blank">FaceCheck ID</a>
+        <a class="service-button" href="https://pimeyes.com/en" target="_blank">PimEyes</a>
+        <a class="service-button" href="https://yandex.com/images/" target="_blank">Yandex Images</a>
+        <a class="service-button" href="https://tineye.com/" target="_blank">TinEye</a>
+        <a class="service-button" href="https://www.genelify.com/tools/technology-lookup" target="_blank">Site Lookup</a>
+
+        <!-- 🌍 Website & Domain Intelligence -->
+        <a class="service-button" href="https://whois.domaintools.com/" target="_blank">Whois Lookup</a>
+        <a class="service-button" href="https://builtwith.com/" target="_blank">BuiltWith</a>
+        <a class="service-button" href="https://urlscan.io/" target="_blank">URLScan</a>
+        <a class="service-button" href="https://www.virustotal.com/" target="_blank">VirusTotal</a>
+
+        <!-- ☎️ Phone & Email Lookup -->
+        <a class="service-button" href="https://www.truecaller.com/" target="_blank">Truecaller</a>
+        <a class="service-button" href="https://emailable.com/" target="_blank">Emailable Verify</a>
+        <a class="service-button" href="https://emailrep.io/" target="_blank">EmailRep</a>
+
+        <!-- 🧠 OSINT Frameworks & Resources -->
+        <a class="service-button" href="https://osintframework.com/" target="_blank">OSINT Framework</a>
+        <a class="service-button" href="https://intelx.io/" target="_blank">IntelX</a>
+        <a class="service-button" href="https://www.maltego.com/" target="_blank">Maltego</a>
+        <a class="service-button" href="https://inteltechniques.com/" target="_blank">Intel Techniques</a>
+        <a class="service-button" href="https://twitter.com/search-advanced" target="_blank">Twitter Advanced Search</a>
+    </div>
+</div>
+
+            
+            <!-- Other Sections (Placeholder) -->
+            <div class="content-section" id="outage-section">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Outage Control</div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <p>Outage Control content will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section" id="analytics-section">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Analytics</div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <p>Analytics content will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section" id="customers-section">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Customers</div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <p>Customers content will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section" id="grid-section">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Grid Map</div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <p>Grid Map content will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section" id="systems-section">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Systems</div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <p>Systems content will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        createParticles();
+        
+        // Mobile menu toggle
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+        
+        // Menu navigation
+        const menuItems = document.querySelectorAll('.menu-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        const pageTitle = document.getElementById('pageTitle');
+        
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all menu items and content sections
+                menuItems.forEach(i => i.classList.remove('active'));
+                contentSections.forEach(section => section.classList.remove('active'));
+                
+                // Add active class to clicked menu item
+                this.classList.add('active');
+                
+                // Show corresponding content section
+                const sectionId = this.getAttribute('data-section') + '-section';
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.classList.add('active');
+                }
+                
+                // Update page title
+                pageTitle.textContent = this.querySelector('span').textContent;
+            });
+        });
+        
+        // Chart.js configuration with sci-fi theme
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(0, 212, 255, 0.1)';
+        Chart.defaults.font.family = "'Rajdhani', sans-serif";
+        
+        // Outage Trends Chart
+        const outageTrendsCtx = document.getElementById('outageTrendsChart');
+        if (outageTrendsCtx) {
+            const gradient1 = outageTrendsCtx.getContext('2d').createLinearGradient(0, 0, 0, 250);
+            gradient1.addColorStop(0, 'rgba(0, 212, 255, 0.3)');
+            gradient1.addColorStop(1, 'rgba(0, 212, 255, 0.01)');
+            
+            const gradient2 = outageTrendsCtx.getContext('2d').createLinearGradient(0, 0, 0, 250);
+            gradient2.addColorStop(0, 'rgba(236, 72, 153, 0.3)');
+            gradient2.addColorStop(1, 'rgba(236, 72, 153, 0.01)');
+            
+            new Chart(outageTrendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+                    datasets: [{
+                        label: 'PLANNED OUTAGES',
+                        data: [12, 19, 15, 25, 22, 30, 28, 35, 32, 38, 42, 45],
+                        borderColor: '#00d4ff',
+                        backgroundColor: gradient1,
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00d4ff',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }, {
+                        label: 'UNPLANNED OUTAGES',
+                        data: [15, 22, 18, 28, 32, 26, 35, 42, 38, 45, 48, 52],
+                        borderColor: '#ec4899',
+                        backgroundColor: gradient2,
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ec4899',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 11,
+                                    weight: '600'
+                                },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 14, 39, 0.9)',
+                            borderColor: '#00d4ff',
+                            borderWidth: 1,
+                            titleFont: {
+                                size: 12,
+                                weight: '700'
+                            },
+                            bodyFont: {
+                                size: 11
+                            },
+                            padding: 12,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' incidents';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 212, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 212, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Outage Categories Chart
+        const outageCategoriesCtx = document.getElementById('outageCategoriesChart');
+        if (outageCategoriesCtx) {
+            new Chart(outageCategoriesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['EQUIPMENT', 'WEATHER', 'MAINTENANCE', 'OTHER'],
+                    datasets: [{
+                        data: [33.6, 22.39, 7.56, 36.45],
+                        backgroundColor: [
+                            '#00d4ff',
+                            '#10b981',
+                            '#7c3aed',
+                            '#ec4899'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 14, 39, 0.9)',
+                            borderColor: '#00d4ff',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%',
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true
+                    }
+                }
+            });
+        }
+        
+        // Response Time Chart
+        const responseTimeCtx = document.getElementById('responseTimeChart');
+        if (responseTimeCtx) {
+            new Chart(responseTimeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['SECTOR 1', 'SECTOR 2', 'SECTOR 3', 'SECTOR 4', 'SECTOR 5', 'SECTOR 6'],
+                    datasets: [{
+                        label: 'RESPONSE TIME',
+                        data: [1.2, 2.5, 1.8, 3.2, 2.1, 1.5],
+                        backgroundColor: 'rgba(0, 212, 255, 0.6)',
+                        borderColor: '#00d4ff',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }, {
+                        label: 'RESOLUTION TIME',
+                        data: [2.5, 4.2, 3.1, 5.8, 3.9, 2.8],
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderColor: '#10b981',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 11,
+                                    weight: '600'
+                                },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 14, 39, 0.9)',
+                            borderColor: '#00d4ff',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' hours';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 212, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10,
+                                    weight: '500'
+                                },
+                                callback: function(value) {
+                                    return value + 'h';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 212, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Simulate real-time updates with sci-fi effects
+        setInterval(function() {
+            // Only update if dashboard section is active
+            if (document.getElementById('dashboard-section').classList.contains('active')) {
+                // Update active outages with animation
+                const activeOutages = document.querySelector('.stats-card-value');
+                if (activeOutages) {
+                    const currentValue = parseInt(activeOutages.textContent);
+                    const change = Math.random() > 0.5 ? 1 : -1;
+                    const newValue = Math.max(0, currentValue + change);
+                    
+                    // Add glow effect during update
+                    activeOutages.style.textShadow = '0 0 30px rgba(0, 212, 255, 1)';
+                    activeOutages.textContent = newValue;
+                    
+                    setTimeout(() => {
+                        activeOutages.style.textShadow = '';
+                    }, 500);
+                }
+                
+                // Update notification badge
+                const badge = document.querySelector('.notification-badge');
+                if (badge) {
+                    const currentBadge = parseInt(badge.textContent);
+                    const newBadge = Math.max(0, currentBadge + Math.floor(Math.random() * 3) - 1);
+                    badge.textContent = newBadge;
+                }
+                
+                // Randomly update a progress bar
+                const progressBars = document.querySelectorAll('.progress-bar');
+                if (progressBars.length > 0) {
+                    const randomBar = progressBars[Math.floor(Math.random() * progressBars.length)];
+                    const currentWidth = parseFloat(randomBar.style.width);
+                    const newWidth = Math.max(5, Math.min(95, currentWidth + (Math.random() - 0.5) * 10));
+                    randomBar.style.width = newWidth + '%';
+                    
+                    // Update the corresponding label
+                    const progressContainer = randomBar.closest('.progress-container');
+                    const label = progressContainer.querySelector('.progress-label span:last-child');
+                    label.textContent = newWidth.toFixed(2) + '%';
+                }
+            }
+        }, 8000);
+        
+        // Add hover sound effect simulation (visual feedback)
+        document.querySelectorAll('.stats-card, .chart-card, .menu-item, .service-button').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                this.style.transition = 'all 0.3s ease';
+            });
+        });
+    </script>
+</body>
+</html>
