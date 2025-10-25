@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Photo Lab - Precision Crop</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <!-- Google Fonts for Sci-Fi Vibe -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --cyber-bg: #0a0e27;
+            --cyber-dark: #060818;
+            --cyber-card: rgba(13, 17, 38, 0.8);
+            --cyber-sidebar: rgba(10, 14, 39, 0.95);
+            --neon-blue: #00d4ff;
+            --neon-cyan: #00ffff;
+            --neon-purple: #7c3aed;
+            --neon-pink: #ec4899;
+            --cyber-blue: #1e40af;
+            --cyber-light: #60a5fa;
+            --text-primary: #e0f2fe;
+            --text-secondary: #94a3b8;
+            --border-glow: rgba(0, 212, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #060818 50%, #0a0e27 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Grid Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 2;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: var(--cyber-sidebar);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-glow);
+            z-index: 100;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            border-bottom: 1px solid var(--border-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .sidebar-header h3 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--neon-blue);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.1), transparent);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.2), transparent);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+        }
+
+        .menu-item.active::before {
+            transform: scaleY(1);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .menu-item i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 0;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: var(--cyber-card);
+            backdrop-filter: blur(20px);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-glow);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-title h2 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .notification-btn, .profile-btn {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(124, 58, 237, 0.1));
+            border: 1px solid var(--border-glow);
+            color: var(--neon-cyan);
+            font-size: 18px;
+            margin-left: 15px;
+            cursor: pointer;
+            position: relative;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover, .profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+            border-color: var(--neon-cyan);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: var(--cyber-card);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: borderGlow 3s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .chart-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .chart-card-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-card-options {
+            display: flex;
+        }
+
+        .chart-option-btn {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(124, 58, 237, 0.1));
+            border: 1px solid var(--border-glow);
+            color: var(--neon-cyan);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-option-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Mobile Responsiveness */
+        .mobile-toggle {
+            display: none;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(124, 58, 237, 0.2));
+            border: 1px solid var(--border-glow);
+            color: var(--neon-cyan);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-right: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        /* Floating particles animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-cyan);
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Photo Lab Specific Styles */
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+        }
+
+        .form-label {
+            color: var(--neon-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-label::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: var(--neon-cyan);
+            transition: width 0.3s ease;
+        }
+
+        .form-label:hover::after {
+            width: 100%;
+        }
+
+        .form-control {
+            background-color: var(--cyber-dark);
+            border: 1px solid var(--border-glow);
+            color: var(--text-primary);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .form-control:focus {
+            background-color: var(--cyber-dark);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--border-glow);
+            color: var(--text-primary);
+        }
+        
+        .pixel-dimensions {
+            color: var(--text-secondary);
+            font-size: 0.8em;
+            font-family: monospace;
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+        
+        .print-info {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* --- Sci-Fi Buttons --- */
+        .btn-cyan {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-cyan));
+            color: var(--cyber-dark);
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--border-glow);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .btn-cyan::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-cyan:hover::before {
+            left: 100%;
+        }
+
+        .btn-cyan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--border-glow);
+            color: var(--cyber-dark);
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-purple));
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .btn-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-info:hover::before {
+            left: 100%;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--neon-pink);
+            color: white;
+        }
+
+        /* --- Cropper Container --- */
+        #cropperSection {
+            display: none; /* Hidden by default */
+            max-height: 500px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden; /* Ensure overflow is hidden */
+        }
+
+        #cropperSection img {
+            max-width: 100%;
+        }
+
+        /* Container for the image with scan animation */
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Scan animation specifically for the image container */
+        .image-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            animation: scan-image 2s infinite linear;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes scan-image {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
+        /* --- Output Grid (for screen view) --- */
+        #printOutput {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            /* Explicitly set both row and column gaps */
+            row-gap: 15px;
+            column-gap: 15px;
+            padding: 1rem;
+            background-color: var(--cyber-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 15px;
+            min-height: 100px;
+            justify-content: center; /* Center the grid items */
+            margin: 0 auto; /* Center the container itself */
+            max-width: 800px; /* Limit the max width for better centering */
+        }
+
+        #printOutput img {
+            width: 100%;
+            height: auto;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--border-glow);
+            transition: all 0.3s ease;
+        }
+
+        #printOutput img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--border-glow);
+        }
+        
+        .placeholder-text {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        /* --- Loading Animation --- */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 14, 26, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(0, 255, 255, 0.2);
+            border-top: 3px solid var(--neon-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--neon-cyan);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        /* --- Print Preview Modal --- */
+        .print-preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 14, 26, 0.95);
+            z-index: 1000;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .print-preview-container {
+            background-color: white;
+            width: 210mm;
+            height: 297mm;
+            margin: 20px auto;
+            padding: 10.16mm; /* 0.2in margin */
+            box-shadow: 0 0 30px var(--border-glow);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .print-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .print-preview-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .print-preview-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .print-preview-grid {
+            width: 100%;
+            flex-grow: 1;
+            display: grid;
+            /* Explicitly set both row and column gaps */
+            row-gap: 24px;
+            column-gap: 24px;
+        }
+
+        /* Image containers for print preview */
+        .print-preview-grid .image-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        .print-preview-grid img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            /* Remove object-fit to prevent white borders */
+        }
+
+        .print-preview-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--cyber-card);
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .print-preview-close:hover {
+            background: var(--neon-cyan);
+            color: var(--cyber-dark);
+        }
+
+        /* --- A4 Print Styles (ROBUST VERSION) --- */
+        @page {
+            size: A4;
+            margin: 0.2in; /* 0.2-inch margin on all sides */
+        }
+
+        @media print {
+            body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+            }
+
+            /* Hide the main application interface */
+            .dashboard-content, .chart-card, .placeholder-text, .print-preview-modal, .print-preview-close, .print-preview-actions, .print-preview-header {
+                display: none !important;
+            }
+            
+            /* Create a dedicated print container */
+            .print-container {
+                display: block !important;
+                visibility: visible !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: white;
+                padding: 0;
+                margin: 0;
+                border: none;
+            }
+
+            .print-grid {
+                display: grid !important;
+                width: 100%;
+                height: 100%;
+                /* Explicitly set both row and column gaps */
+                row-gap: 24px;
+                column-gap: 24px;
+            }
+
+            /* Image containers for print */
+            .print-grid .image-wrapper {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+            }
+
+            .print-grid img {
+                border: none !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+                width: 100% !important;
+                height: 100% !important;
+                display: block;
+                /* Remove object-fit to prevent white borders */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Neural System</h3>
+        </div>
+        <div class="sidebar-menu">
+            <a href="index.html" class="menu-item">
+                <i class="fas fa-satellite-dish"></i>
+                <span>Silent Lab</span>
+            </a>
+            <a href="digital-control.html" class="menu-item">
+                <i class="fas fa-bolt"></i>
+                <span>Digital Control</span>
+            </a>
+            <a href="photolab.html" class="menu-item active">
+                <i class="fas fa-camera"></i>
+                <span>Photo Lab</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-users-cog"></i>
+                <span>Customers</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Grid Map</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>Systems</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <div class="top-header">
+            <div class="header-title d-flex align-items-center">
+                <button class="mobile-toggle" id="mobileToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2>Photo Lab</h2>
+            </div>
+            <div class="header-actions">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="profile-btn">
+                    <i class="fas fa-user-astronaut"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Loading Overlay -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">PROCESSING...</div>
+                </div>
+            </div>
+
+            <!-- Print Preview Modal -->
+            <div class="print-preview-modal" id="printPreviewModal">
+                <div class="print-preview-container">
+                    <div class="print-preview-header">
+                        <div class="print-preview-title">PRINT PREVIEW</div>
+                        <div class="print-preview-actions">
+                            <button class="btn btn-cyan" id="confirmPrint">
+                                <i class="fas fa-print"></i> PRINT
+                            </button>
+                            <button class="btn btn-info" id="cancelPrint">
+                                <i class="fas fa-ban"></i> CANCEL
+                            </button>
+                        </div>
+                    </div>
+                    <div class="print-preview-grid" id="printPreviewGrid"></div>
+                </div>
+                <div class="print-preview-close" id="closePreview">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+
+            <!-- Print Container (Hidden by default) -->
+            <div class="print-container" id="printContainer" style="display: none;">
+                <div class="print-grid" id="printGrid"></div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <h1>QUANTUM PHOTO LAB</h1>
+                    
+                    <!-- Input Controls -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <h5 style="color: var(--text-primary); font-family: 'Orbitron', monospace; text-transform: uppercase; letter-spacing: 1px;">
+                                <i class="fas fa-satellite-dish"></i> INITIALIZE PROTOCOL
+                            </h5>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="photoInput" class="form-label">
+                                <i class="fas fa-image"></i> 1. Select Image Source
+                            </label>
+                            <input type="file" class="form-control" id="photoInput" accept="image/*">
+                        </div>
+
+                        <!-- Cropper Section (Hidden until image is uploaded) -->
+                        <div id="cropperSection">
+                            <label class="form-label">
+                                <i class="fas fa-crop-alt"></i> 2. Position Crop Area
+                            </label>
+                            <div class="image-container">
+                                <img id="imageToCrop">
+                            </div>
+                        </div>
+
+                        <!-- Settings Section (Hidden until image is uploaded) -->
+                        <div id="settingsSection" style="display: none;">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="widthInches" class="form-label">
+                                        <i class="fas fa-arrows-alt-h"></i> Width (inches)
+                                    </label>
+                                    <input type="number" class="form-control" id="widthInches" value="4" step="0.1">
+                                    <div id="pixelDimensions" class="pixel-dimensions">1200 x 1800 px</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="heightInches" class="form-label">
+                                        <i class="fas fa-arrows-alt-v"></i> Height (inches)
+                                    </label>
+                                    <input type="number" class="form-control" id="heightInches" value="6" step="0.1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="dpi" class="form-label">
+                                        <i class="fas fa-microscope"></i> DPI (Quality)
+                                    </label>
+                                    <input type="number" class="form-control" id="dpi" value="300">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="copyCount" class="form-label">
+                                        <i class="fas fa-clone"></i> Replication Count
+                                    </label>
+                                    <input type="number" class="form-control" id="copyCount" placeholder="e.g., 4, 6, 9" value="4" min="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                            <button id="generateBtn" class="btn btn-cyan" disabled>
+                                <i class="fas fa-atom"></i> GENERATE REPLICAS
+                            </button>
+                            <button id="printBtn" class="btn btn-info" style="display: none;">
+                                <i class="fas fa-print"></i> PRINT LAYOUT
+                            </button>
+                        </div>
+                        
+                        <p class="print-info">
+                            <i class="fas fa-info-circle"></i> Note: Print layout is configured for A4 with a 0.2-inch margin on all sides and 24px gap between images.
+                        </p>
+                    </div>
+
+                    <!-- Output Area -->
+                    <div id="printOutput">
+                        <p class="placeholder-text">
+                            <i class="fas fa-inbox"></i> Replicated images will appear here, optimized for A4 printing.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let cropper;
+            let generatedImages = [];
+
+            const photoInput = document.getElementById('photoInput');
+            const imageToCrop = document.getElementById('imageToCrop');
+            const cropperSection = document.getElementById('cropperSection');
+            const settingsSection = document.getElementById('settingsSection');
+            const generateBtn = document.getElementById('generateBtn');
+            const printBtn = document.getElementById('printBtn');
+            const printOutput = document.getElementById('printOutput');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const printPreviewModal = document.getElementById('printPreviewModal');
+            const printPreviewGrid = document.getElementById('printPreviewGrid');
+            const closePreview = document.getElementById('closePreview');
+            const confirmPrint = document.getElementById('confirmPrint');
+            const cancelPrint = document.getElementById('cancelPrint');
+            const printContainer = document.getElementById('printContainer');
+            const printGrid = document.getElementById('printGrid');
+            
+            // Input elements for live update
+            const widthInInput = document.getElementById('widthInches');
+            const heightInInput = document.getElementById('heightInches');
+            const dpiInput = document.getElementById('dpi');
+            const pixelDimensionsDisplay = document.getElementById('pixelDimensions');
+
+            // Create floating particles
+            function createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 20 + 's';
+                    particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            createParticles();
+            
+            // Mobile menu toggle
+            document.getElementById('mobileToggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+
+            // --- Function to update the crop box in real-time ---
+            function updateCropBox() {
+                if (!cropper) return;
+
+                const widthIn = parseFloat(widthInInput.value) || 1;
+                const heightIn = parseFloat(heightInInput.value) || 1;
+                const dpi = parseInt(dpiInput.value) || 72;
+
+                const widthPx = Math.round(widthIn * dpi);
+                const heightPx = Math.round(heightIn * dpi);
+
+                // Update pixel dimension display
+                pixelDimensionsDisplay.textContent = `${widthPx} x ${heightPx} px`;
+
+                // Set the aspect ratio and size of the crop box
+                cropper.setAspectRatio(widthPx / heightPx);
+                cropper.setData({
+                    width: widthPx,
+                    height: heightPx,
+                });
+            }
+
+            // --- Event Listeners for live updates ---
+            widthInInput.addEventListener('input', updateCropBox);
+            heightInInput.addEventListener('input', updateCropBox);
+            dpiInput.addEventListener('input', updateCropBox);
+
+            // 1. HANDLE IMAGE UPLOAD
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show loading overlay
+                    loadingOverlay.classList.add('active');
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        if (cropper) { cropper.destroy(); }
+                        imageToCrop.src = event.target.result;
+                        
+                        cropperSection.style.display = 'block';
+                        settingsSection.style.display = 'block';
+                        generateBtn.disabled = false;
+
+                        cropper = new Cropper(imageToCrop, {
+                            viewMode: 1,
+                            autoCropArea: 0.5,
+                            movable: true,
+                            rotatable: false,
+                            scalable: false,
+                            zoomable: false,
+                            zoomOnTouch: false,
+                            zoomOnWheel: false,
+                            cropBoxMovable: true,
+                            cropBoxResizable: false,
+                            ready: function() {
+                                // The scan animation is now applied via CSS to the image-container
+                                // No need to add it programmatically
+                            }
+                        });
+
+                        updateCropBox();
+                        
+                        // Hide loading overlay
+                        setTimeout(() => {
+                            loadingOverlay.classList.remove('active');
+                        }, 500);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 2. HANDLE GENERATION
+            generateBtn.addEventListener('click', function() {
+                const count = parseInt(document.getElementById('copyCount').value, 10);
+
+                if (isNaN(count) || count < 1) { 
+                    alert('Warning: Please enter a valid replication count.'); 
+                    return; 
+                }
+                if (!cropper) { 
+                    alert('Error: No image to process.'); 
+                    return; 
+                }
+
+                // Show loading overlay
+                loadingOverlay.classList.add('active');
+
+                setTimeout(() => {
+                    const croppedCanvas = cropper.getCroppedCanvas();
+                    if (!croppedCanvas) { 
+                        alert('Error: Could not retrieve cropped image.'); 
+                        loadingOverlay.classList.remove('active');
+                        return; 
+                    }
+                    
+                    const finalImageSrc = croppedCanvas.toDataURL('image/jpeg', 0.95);
+                    printOutput.innerHTML = '';
+                    generatedImages = [];
+
+                    // --- A4 LAYOUT CALCULATION (with 0.2in margins and 24px gaps) ---
+                    const widthIn = parseFloat(widthInInput.value);
+                    const heightIn = parseFloat(heightInInput.value);
+                    const a4_printable_width_mm = 189.68; // A4 width (210mm) - 2 * 0.2in (10.16mm) margin
+                    const a4_printable_height_mm = 276.68; // A4 height (297mm) - 2 * 0.2in (10.16mm) margin
+                    const print_width_mm = widthIn * 25.4;
+                    const print_height_mm = heightIn * 25.4;
+                    const gap_mm = 24 * 0.264583; // Convert 24px to mm (1px = 0.264583mm)
+
+                    // Calculate how many images fit with gaps
+                    const cols = Math.floor((a4_printable_width_mm + gap_mm) / (print_width_mm + gap_mm));
+                    const rows = Math.floor((a4_printable_height_mm + gap_mm) / (print_height_mm + gap_mm));
+                    
+                    // Set the grid dimensions for the print output container
+                    printOutput.style.width = `${a4_printable_width_mm}mm`;
+                    printOutput.style.gridTemplateColumns = `repeat(${cols}, ${print_width_mm}mm)`;
+                    printOutput.style.gridTemplateRows = `repeat(${rows}, ${print_height_mm}mm)`;
+                    // Explicitly set both row and column gaps
+                    printOutput.style.rowGap = '15px';
+                    printOutput.style.columnGap = '15px';
+
+                    for (let i = 0; i < count; i++) {
+                        const img = document.createElement('img');
+                        img.src = finalImageSrc;
+                        img.alt = `Replica ${i + 1}`;
+                        img.style.width = `${print_width_mm}mm`;
+                        img.style.height = `${print_height_mm}mm`;
+                        printOutput.appendChild(img);
+                        generatedImages.push(finalImageSrc);
+                    }
+
+                    printBtn.style.display = 'inline-block';
+                    
+                    // Hide loading overlay
+                    loadingOverlay.classList.remove('active');
+                }, 500);
+            });
+
+            // 3. HANDLE PRINT PREVIEW
+            printBtn.addEventListener('click', function() {
+                if (generatedImages.length === 0) {
+                    alert('Error: No images to print. Please generate replicas first.');
+                    return;
+                }
+
+                // Show loading overlay
+                loadingOverlay.classList.add('active');
+
+                setTimeout(() => {
+                    // --- A4 LAYOUT CALCULATION (with 0.2in margins and 24px gaps) ---
+                    const widthIn = parseFloat(widthInInput.value);
+                    const heightIn = parseFloat(heightInInput.value);
+                    const a4_printable_width_mm = 189.68; // A4 width (210mm) - 2 * 0.2in (10.16mm) margin
+                    const a4_printable_height_mm = 276.68; // A4 height (297mm) - 2 * 0.2in (10.16mm) margin
+                    const print_width_mm = widthIn * 25.4;
+                    const print_height_mm = heightIn * 25.4;
+                    const gap_mm = 24 * 0.264583; // Convert 24px to mm (1px = 0.264583mm)
+
+                    // Calculate how many images fit with gaps
+                    const cols = Math.floor((a4_printable_width_mm + gap_mm) / (print_width_mm + gap_mm));
+                    const rows = Math.floor((a4_printable_height_mm + gap_mm) / (print_height_mm + gap_mm));
+
+                    // Clear previous preview
+                    printPreviewGrid.innerHTML = '';
+                    printGrid.innerHTML = '';
+
+                    // Set grid layout with explicit row and column gaps
+                    printPreviewGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                    printPreviewGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                    printPreviewGrid.style.rowGap = '24px';
+                    printPreviewGrid.style.columnGap = '24px';
+                    
+                    printGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                    printGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                    printGrid.style.rowGap = '24px';
+                    printGrid.style.columnGap = '24px';
+
+                    // Add images to preview and print grid
+                    for (let i = 0; i < generatedImages.length; i++) {
+                        // Create wrapper for preview image
+                        const previewWrapper = document.createElement('div');
+                        previewWrapper.className = 'image-wrapper';
+                        
+                        // Preview image
+                        const previewImg = document.createElement('img');
+                        previewImg.src = generatedImages[i];
+                        previewImg.alt = `Replica ${i + 1}`;
+                        // Removed objectFit property to prevent white borders
+                        
+                        previewWrapper.appendChild(previewImg);
+                        printPreviewGrid.appendChild(previewWrapper);
+
+                        // Create wrapper for print image
+                        const printWrapper = document.createElement('div');
+                        printWrapper.className = 'image-wrapper';
+                        
+                        // Print image
+                        const printImg = document.createElement('img');
+                        printImg.src = generatedImages[i];
+                        printImg.alt = `Replica ${i + 1}`;
+                        // Removed objectFit property to prevent white borders
+                        
+                        printWrapper.appendChild(printImg);
+                        printGrid.appendChild(printWrapper);
+                    }
+
+                    // Show preview modal
+                    printPreviewModal.style.display = 'block';
+                    
+                    // Hide loading overlay
+                    loadingOverlay.classList.remove('active');
+                }, 500);
+            });
+
+            // Close preview modal
+            closePreview.addEventListener('click', function() {
+                printPreviewModal.style.display = 'none';
+            });
+
+            cancelPrint.addEventListener('click', function() {
+                printPreviewModal.style.display = 'none';
+            });
+
+            // Confirm print
+            confirmPrint.addEventListener('click', function() {
+                printPreviewModal.style.display = 'none';
+                
+                // Show print container
+                printContainer.style.display = 'block';
+                
+                // Trigger print dialog
+                window.print();
+                
+                // Hide print container after printing
+                setTimeout(() => {
+                    printContainer.style.display = 'none';
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
