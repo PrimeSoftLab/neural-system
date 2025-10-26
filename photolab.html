@@ -700,7 +700,7 @@
             letter-spacing: 2px;
         }
 
-        /* --- Print Preview Modal --- */
+        /* --- Print Preview Modal - Now Hidden by Default --- */
         .print-preview-modal {
             display: none;
             position: fixed;
@@ -716,6 +716,7 @@
 
         .print-preview-container {
             background-color: white;
+            /* A4 size: 210mm x 297mm (8.27 x 11.69 inches) */
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
@@ -724,6 +725,10 @@
             position: relative;
             display: flex;
             flex-direction: column;
+            /* Ensure proper aspect ratio */
+            aspect-ratio: 210/297;
+            /* Add a subtle border to show the page boundary */
+            border: 1px solid #ddd;
         }
 
         .print-preview-header {
@@ -750,28 +755,29 @@
         .print-preview-grid {
             width: 100%;
             flex-grow: 1;
-            display: grid;
-            /* Always show 4 columns for print preview */
-            grid-template-columns: repeat(4, 1fr);
-            /* Explicitly set both row and column gaps */
-            row-gap: 24px;
-            column-gap: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 24px;
+            position: relative;
         }
 
         /* Image containers for print preview */
         .print-preview-grid .image-wrapper {
-            width: 100%;
-            height: 100%;
+            position: relative;
             overflow: hidden;
             border: 1px solid #ddd;
             box-sizing: border-box;
+            display: inline-block;
+            background-color: white; /* Ensure white background */
         }
 
         .print-preview-grid img {
-            width: 100%;
-            height: 100%;
             display: block;
-            /* Remove object-fit to prevent white borders */
+            /* Ensure high resolution for printing */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
         }
 
         .print-preview-close {
@@ -829,36 +835,37 @@
             }
 
             .print-grid {
-                display: grid !important;
+                display: flex !important;
+                flex-wrap: wrap;
                 width: 100%;
                 height: 100%;
-                /* Always show 4 columns for print */
-                grid-template-columns: repeat(4, 1fr);
-                /* Explicitly set both row and column gaps */
-                row-gap: 24px;
-                column-gap: 24px;
+                gap: 24px;
+                align-content: flex-start;
             }
 
             /* Image containers for print */
             .print-grid .image-wrapper {
-                width: 100%;
-                height: 100%;
+                position: relative;
                 overflow: hidden;
                 border: 1px solid #ccc;
                 box-sizing: border-box;
                 page-break-inside: avoid;
+                display: inline-block;
+                background-color: white !important; /* Force white background for print */
             }
 
             .print-grid img {
                 border: none !important;
                 box-shadow: none !important;
-                width: 100% !important;
-                height: 100% !important;
                 display: block !important;
                 max-width: none !important;
                 max-height: none !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                /* Ensure high resolution for printing */
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+                image-rendering: pixelated;
             }
         }
 
@@ -950,6 +957,7 @@
             z-index: 2;
         }
 
+        /* Keep the original 4-column grid for the sci-fi vibe */
         .generated-images-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr); /* Always show 4 columns */
@@ -959,20 +967,33 @@
             z-index: 2;
         }
 
-        .generated-image-wrapper {
-            position: relative;
-            overflow: hidden;
-            border-radius: 15px;
-            border: 2px solid var(--border-glow);
-            box-shadow: 
-                0 0 20px rgba(0, 212, 255, 0.2),
-                0 10px 30px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            transform: scale(0.9) translateY(20px);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            /* Ensure images don't appear until animation starts */
-            visibility: hidden;
-        }
+.generated-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    border: 2px solid var(--border-glow);
+    box-shadow: 
+        0 0 20px rgba(0, 212, 255, 0.2),
+        0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Ensure images don't appear until animation starts */
+    visibility: hidden;
+}
+
+/* Add this animated top border */
+.generated-image-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+    animation: borderGlow 3s linear infinite;
+    z-index: 1;
+}
 
         .generated-image-wrapper.active {
             opacity: 1;
@@ -1325,7 +1346,7 @@
                 </div>
             </div>
 
-            <!-- Print Preview Modal -->
+            <!-- Print Preview Modal - Hidden by default -->
             <div class="print-preview-modal" id="printPreviewModal">
                 <div class="print-preview-container">
                     <div class="print-preview-header">
@@ -1464,6 +1485,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             let cropper;
             let generatedImages = [];
+            let originalImages = []; // Store original images without border/corner radius
+            let imageDimensions = { width: 0, height: 0, widthMm: 0, heightMm: 0 };
 
             const photoInput = document.getElementById('photoInput');
             const imageToCrop = document.getElementById('imageToCrop');
@@ -1525,6 +1548,14 @@
 
                 // Update pixel dimension display
                 pixelDimensionsDisplay.textContent = `${widthPx} x ${heightPx} px`;
+
+                // Store image dimensions for later use
+                imageDimensions = {
+                    width: widthPx,
+                    height: heightPx,
+                    widthMm: widthIn * 25.4,
+                    heightMm: heightIn * 25.4
+                };
 
                 // Set the aspect ratio and size of the crop box
                 cropper.setAspectRatio(widthPx / heightPx);
@@ -1601,9 +1632,130 @@
                 }
             });
 
+            // Function to detect if an image has a white background
+            function hasWhiteBackground(canvas) {
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                
+                // Sample pixels from the corners and center
+                const samplePoints = [
+                    { x: 0, y: 0 }, // Top-left
+                    { x: canvas.width - 1, y: 0 }, // Top-right
+                    { x: 0, y: canvas.height - 1 }, // Bottom-left
+                    { x: canvas.width - 1, y: canvas.height - 1 }, // Bottom-right
+                    { x: Math.floor(canvas.width / 2), y: Math.floor(canvas.height / 2) } // Center
+                ];
+                
+                let whitePixelCount = 0;
+                const threshold = 240; // RGB threshold for white
+                
+                for (const point of samplePoints) {
+                    const index = (point.y * canvas.width + point.x) * 4;
+                    const r = pixels[index];
+                    const g = pixels[index + 1];
+                    const b = pixels[index + 2];
+                    
+                    // Check if pixel is white or very close to white
+                    if (r > threshold && g > threshold && b > threshold) {
+                        whitePixelCount++;
+                    }
+                }
+                
+                // If at least 4 out of 5 sample points are white, consider it a white background
+                return whitePixelCount >= 4;
+            }
+
+            // Function to add rounded corners to a canvas
+            function addRoundedCorners(canvas, radius) {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Create a temporary canvas for the rounded corners
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = width;
+                tempCanvas.height = height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Draw rounded rectangle path
+                tempCtx.beginPath();
+                tempCtx.moveTo(radius, 0);
+                tempCtx.lineTo(width - radius, 0);
+                tempCtx.quadraticCurveTo(width, 0, width, radius);
+                tempCtx.lineTo(width, height - radius);
+                tempCtx.quadraticCurveTo(width, height, width - radius, height);
+                tempCtx.lineTo(radius, height);
+                tempCtx.quadraticCurveTo(0, height, 0, height - radius);
+                tempCtx.lineTo(0, radius);
+                tempCtx.quadraticCurveTo(0, 0, radius, 0);
+                tempCtx.closePath();
+                tempCtx.clip();
+                
+                // Draw the original canvas content onto the temporary canvas
+                tempCtx.drawImage(canvas, 0, 0);
+                
+                // Copy the rounded corners back to the original canvas
+                ctx.clearRect(0, 0, width, height);
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
+
+            // Function to apply border and corner radius to an image for printing
+            function applyPrintEffects(imageSrc, widthIn, heightIn, dpi) {
+                return new Promise((resolve) => {
+                    const widthPx = Math.round(widthIn * dpi);
+                    const heightPx = Math.round(heightIn * dpi);
+                    
+                    // Create a new image element
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create a canvas for the final image
+                        const finalCanvas = document.createElement('canvas');
+                        finalCanvas.width = widthPx;
+                        finalCanvas.height = heightPx;
+                        const ctx = finalCanvas.getContext('2d');
+                        
+                        // Fill with white background first
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, widthPx, heightPx);
+                        
+                        // Draw the image
+                        ctx.drawImage(img, 0, 0, widthPx, heightPx);
+                        
+                        // Check if the image has a white background
+                        const hasWhiteBg = hasWhiteBackground(finalCanvas);
+                        
+                        // If it has a white background, add a black border
+                        if (hasWhiteBg) {
+                            ctx.strokeStyle = 'black';
+                            ctx.lineWidth = 1.3;
+                            ctx.strokeRect(0, 0, widthPx, heightPx);
+                        }
+                        
+                        // ALWAYS use 8px for corner radius as requested
+                        const cornerRadius = 8;
+                        
+                        // Apply rounded corners
+                        addRoundedCorners(finalCanvas, cornerRadius);
+                        
+                        // Convert to data URL
+                        const finalImageSrc = finalCanvas.toDataURL('image/jpeg', 0.95);
+                        resolve(finalImageSrc);
+                    };
+                    img.src = imageSrc;
+                });
+            }
+
             // 2. HANDLE GENERATION - Now shows in modal with Energy Scan Reveal effect
             generateBtn.addEventListener('click', function() {
                 const count = parseInt(document.getElementById('copyCount').value, 10);
+                const widthIn = parseFloat(widthInInput.value);
+                const heightIn = parseFloat(heightInInput.value);
+                const dpi = parseInt(dpiInput.value) || 72;
+                
+                // Calculate pixel dimensions for the specified DPI
+                const widthPx = Math.round(widthIn * dpi);
+                const heightPx = Math.round(heightIn * dpi);
 
                 if (isNaN(count) || count < 1) { 
                     alert('Warning: Please enter a valid replication count.'); 
@@ -1618,20 +1770,49 @@
                 loadingOverlay.classList.add('active');
 
                 setTimeout(() => {
-                    const croppedCanvas = cropper.getCroppedCanvas();
+                    // Get cropped canvas with explicit dimensions for the specified DPI
+                    const croppedCanvas = cropper.getCroppedCanvas({
+                        width: widthPx,
+                        height: heightPx,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high'
+                    });
+                    
                     if (!croppedCanvas) { 
                         alert('Error: Could not retrieve cropped image.'); 
                         loadingOverlay.classList.remove('active');
                         return; 
                     }
                     
-                    const finalImageSrc = croppedCanvas.toDataURL('image/jpeg', 0.95);
+                    // Create a new canvas to add white background for transparent images
+                    const finalCanvas = document.createElement('canvas');
+                    finalCanvas.width = widthPx;
+                    finalCanvas.height = heightPx;
+                    const ctx = finalCanvas.getContext('2d');
+                    
+                    // Fill with white background first
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, widthPx, heightPx);
+                    
+                    // Then draw the cropped image on top
+                    ctx.drawImage(croppedCanvas, 0, 0, widthPx, heightPx);
+                    
+                    // Convert to data URL without border or corner radius
+                    const originalImageSrc = finalCanvas.toDataURL('image/jpeg', 0.95);
+                    
                     printOutput.innerHTML = '';
                     generatedImages = [];
+                    originalImages = [];
+
+                    // Store image dimensions for later use
+                    imageDimensions = {
+                        width: widthPx,
+                        height: heightPx,
+                        widthMm: widthIn * 25.4,
+                        heightMm: heightIn * 25.4
+                    };
 
                     // --- A4 LAYOUT CALCULATION (with 0.2in margins and 24px gaps) ---
-                    const widthIn = parseFloat(widthInInput.value);
-                    const heightIn = parseFloat(heightInInput.value);
                     const a4_printable_width_mm = 189.68; // A4 width (210mm) - 2 * 0.2in (10.16mm) margin
                     const a4_printable_height_mm = 276.68; // A4 height (297mm) - 2 * 0.2in (10.16mm) margin
                     const print_width_mm = widthIn * 25.4;
@@ -1652,12 +1833,17 @@
 
                     for (let i = 0; i < count; i++) {
                         const img = document.createElement('img');
-                        img.src = finalImageSrc;
+                        img.src = originalImageSrc;
                         img.alt = `Replica ${i + 1}`;
                         img.style.width = `${print_width_mm}mm`;
                         img.style.height = `${print_height_mm}mm`;
+                        // Add DPI metadata as a custom attribute
+                        img.setAttribute('data-dpi', dpi);
                         printOutput.appendChild(img);
-                        generatedImages.push(finalImageSrc);
+                        
+                        // Store both original and generated images
+                        originalImages.push(originalImageSrc);
+                        generatedImages.push(originalImageSrc);
                     }
                     
                     // Hide loading overlay
@@ -1690,7 +1876,7 @@
                 loadingStatus.style.display = 'block';
                 
                 // Add images one by one with Energy Scan Reveal effect
-                generatedImages.forEach((imageSrc, index) => {
+                originalImages.forEach((imageSrc, index) => {
                     setTimeout(() => {
                         // Hide loading status after first image
                         if (index === 0) {
@@ -1739,28 +1925,9 @@
                 }, 500);
             });
 
-            // Print from modal
+            // Print from modal - Now directly triggers print without preview
             printFromModal.addEventListener('click', function() {
-                generatedImagesModal.classList.remove('active');
-                setTimeout(() => {
-                    generatedImagesModal.style.display = 'none';
-                    // Create a temporary print button to trigger the print functionality
-                    const tempPrintBtn = document.createElement('button');
-                    tempPrintBtn.id = 'tempPrintBtn';
-                    tempPrintBtn.style.display = 'none';
-                    document.body.appendChild(tempPrintBtn);
-                    
-                    // Trigger the print functionality
-                    triggerPrintPreview();
-                    
-                    // Remove the temporary button
-                    document.body.removeChild(tempPrintBtn);
-                }, 500);
-            });
-
-            // 3. HANDLE PRINT PREVIEW
-            function triggerPrintPreview() {
-                if (generatedImages.length === 0) {
+                if (originalImages.length === 0) {
                     alert('Error: No images to print. Please generate replicas first.');
                     return;
                 }
@@ -1768,74 +1935,82 @@
                 // Show loading overlay
                 loadingOverlay.classList.add('active');
 
-                setTimeout(() => {
-                    // --- A4 LAYOUT CALCULATION (with 0.2in margins and 24px gaps) ---
+                setTimeout(async () => {
                     const widthIn = parseFloat(widthInInput.value);
                     const heightIn = parseFloat(heightInInput.value);
+                    const dpi = parseInt(dpiInput.value) || 72;
+                    
+                    // --- A4 LAYOUT CALCULATION (with 0.2in margins and 24px gaps) ---
                     const a4_printable_width_mm = 189.68; // A4 width (210mm) - 2 * 0.2in (10.16mm) margin
                     const a4_printable_height_mm = 276.68; // A4 height (297mm) - 2 * 0.2in (10.16mm) margin
                     const print_width_mm = widthIn * 25.4;
                     const print_height_mm = heightIn * 25.4;
                     const gap_mm = 24 * 0.264583; // Convert 24px to mm (1px = 0.264583mm)
 
-                    // Calculate how many images fit with gaps
+                    // Calculate how many images fit per row and column
                     const cols = Math.floor((a4_printable_width_mm + gap_mm) / (print_width_mm + gap_mm));
                     const rows = Math.floor((a4_printable_height_mm + gap_mm) / (print_height_mm + gap_mm));
 
-                    // Clear previous preview
-                    printPreviewGrid.innerHTML = '';
+                    // Clear previous print grid
                     printGrid.innerHTML = '';
 
-                    // Set grid layout with explicit row and column gaps
-                    // Always use 4 columns for print preview and print
-                    printPreviewGrid.style.gridTemplateColumns = `repeat(4, 1fr)`;
-                    printPreviewGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-                    printPreviewGrid.style.rowGap = '24px';
-                    printPreviewGrid.style.columnGap = '24px';
-                    
-                    printGrid.style.gridTemplateColumns = `repeat(4, 1fr)`;
-                    printGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-                    printGrid.style.rowGap = '24px';
-                    printGrid.style.columnGap = '24px';
+                    // Use flexbox layout for dynamic arrangement
+                    printGrid.style.display = 'flex';
+                    printGrid.style.flexWrap = 'wrap';
+                    printGrid.style.alignContent = 'flex-start';
+                    printGrid.style.gap = `${gap_mm}mm`;
 
-                    // Add images to preview and print grid
-                    for (let i = 0; i < generatedImages.length; i++) {
-                        // Create wrapper for preview image
-                        const previewWrapper = document.createElement('div');
-                        previewWrapper.className = 'image-wrapper';
+                    // Apply print effects to each image and add to print grid
+                    for (let i = 0; i < originalImages.length; i++) {
+                        // Apply print effects (border and corner radius)
+                        const printImageSrc = await applyPrintEffects(originalImages[i], widthIn, heightIn, dpi);
                         
-                        // Preview image
-                        const previewImg = document.createElement('img');
-                        previewImg.src = generatedImages[i];
-                        previewImg.alt = `Replica ${i + 1}`;
-                        // Removed objectFit property to prevent white borders
-                        
-                        previewWrapper.appendChild(previewImg);
-                        printPreviewGrid.appendChild(previewWrapper);
-
                         // Create wrapper for print image
                         const printWrapper = document.createElement('div');
                         printWrapper.className = 'image-wrapper';
+                        printWrapper.style.width = `${print_width_mm}mm`;
+                        printWrapper.style.height = `${print_height_mm}mm`;
+                        printWrapper.style.backgroundColor = 'white'; // Ensure white background
                         
                         // Print image
                         const printImg = document.createElement('img');
-                        printImg.src = generatedImages[i];
-                        printImg.alt = `Replica ${i + 1}`;
-                        // Removed objectFit property to prevent white borders
+                        printImg.src = printImageSrc;
+                        printImg.alt = `Replica ${i + 1} (${dpi} DPI)`;
+                        printImg.style.width = '100%';
+                        printImg.style.height = '100%';
+                        // Add DPI metadata as a custom attribute
+                        printImg.setAttribute('data-dpi', dpi);
                         
                         printWrapper.appendChild(printImg);
                         printGrid.appendChild(printWrapper);
                     }
 
-                    // Show preview modal
-                    printPreviewModal.style.display = 'block';
-                    
                     // Hide loading overlay
                     loadingOverlay.classList.remove('active');
+                    
+                    // Close the modal
+                    generatedImagesModal.classList.remove('active');
+                    setTimeout(() => {
+                        generatedImagesModal.style.display = 'none';
+                    }, 500);
+                    
+                    // Show print container
+                    printContainer.style.display = 'block';
+                    
+                    // Add a small delay to ensure the print container is rendered before printing
+                    setTimeout(() => {
+                        // Trigger print dialog directly
+                        window.print();
+                        
+                        // Hide print container after printing
+                        setTimeout(() => {
+                            printContainer.style.display = 'none';
+                        }, 1000);
+                    }, 300);
                 }, 500);
-            }
+            });
 
-            // Close preview modal
+            // Close preview modal (kept for completeness, but won't be used)
             closePreview.addEventListener('click', function() {
                 printPreviewModal.style.display = 'none';
             });
@@ -1844,7 +2019,7 @@
                 printPreviewModal.style.display = 'none';
             });
 
-            // Confirm print
+            // Confirm print (kept for completeness, but won't be used)
             confirmPrint.addEventListener('click', function() {
                 printPreviewModal.style.display = 'none';
                 
