@@ -574,7 +574,7 @@
         /* --- Cropper Container --- */
         #cropperSection {
             display: none; /* Hidden by default */
-            max-height: 500px;
+            max-height: 700px; /* Increased from 500px to 700px */
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden; /* Ensure overflow is hidden */
@@ -751,6 +751,8 @@
             width: 100%;
             flex-grow: 1;
             display: grid;
+            /* Always show 4 columns for print preview */
+            grid-template-columns: repeat(4, 1fr);
             /* Explicitly set both row and column gaps */
             row-gap: 24px;
             column-gap: 24px;
@@ -830,6 +832,8 @@
                 display: grid !important;
                 width: 100%;
                 height: 100%;
+                /* Always show 4 columns for print */
+                grid-template-columns: repeat(4, 1fr);
                 /* Explicitly set both row and column gaps */
                 row-gap: 24px;
                 column-gap: 24px;
@@ -855,6 +859,400 @@
                 max-height: none !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+        }
+
+        /* --- Generated Images Modal --- */
+        .generated-images-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 280px; /* Start from sidebar edge */
+            width: calc(100% - 280px); /* Width of main content area */
+            height: 100%;
+            background: rgba(10, 14, 26, 0.98); /* Simple background without animations */
+            z-index: 999;
+            overflow: auto;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .generated-images-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .generated-images-container {
+            background: linear-gradient(135deg, rgba(13, 17, 38, 0.95) 0%, rgba(10, 14, 39, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 90%; /* Use percentage of main content area */
+            width: 1000px; /* Fixed width for larger screens */
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-glow);
+            position: relative;
+            box-shadow: 
+                0 0 50px rgba(0, 212, 255, 0.3),
+                inset 0 0 30px rgba(0, 212, 255, 0.1);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .generated-images-modal.active .generated-images-container {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Remove background animations from popup */
+        .generated-images-modal::before,
+        .generated-images-modal::after,
+        .generated-images-container::before {
+            display: none !important;
+        }
+
+        .generated-images-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-glow);
+            position: relative;
+            z-index: 2;
+        }
+
+        .generated-images-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.5),
+                0 0 40px rgba(0, 255, 255, 0.3);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.3); }
+            100% { text-shadow: 0 0 30px rgba(0, 255, 255, 0.8), 0 0 60px rgba(0, 255, 255, 0.5); }
+        }
+
+        .generated-images-actions {
+            display: flex;
+            gap: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .generated-images-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Always show 4 columns */
+            gap: 30px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .generated-image-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            border: 2px solid var(--border-glow);
+            box-shadow: 
+                0 0 20px rgba(0, 212, 255, 0.2),
+                0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Ensure images don't appear until animation starts */
+            visibility: hidden;
+        }
+
+        .generated-image-wrapper.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            visibility: visible;
+        }
+
+        .generated-image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: all 0.5s ease;
+        }
+
+        .generated-image-wrapper:hover img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .generated-image-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(0, 255, 255, 0.1) 50%,
+                transparent 70%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .generated-image-wrapper:hover::before {
+            opacity: 1;
+        }
+
+        .generated-images-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--cyber-dark);
+            color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 3;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .generated-images-close:hover {
+            background: var(--neon-cyan);
+            color: var(--cyber-dark);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        /* Energy Scan Reveal Effect - Faster and smoother */
+        @keyframes energyScan {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+                filter: brightness(0.3) contrast(1.2);
+            }
+            30% {
+                opacity: 0.3;
+                transform: scale(0.97);
+                filter: brightness(0.5) contrast(1.3);
+            }
+            60% {
+                opacity: 0.8;
+                transform: scale(0.99);
+                filter: brightness(0.8) contrast(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: brightness(1) contrast(1);
+            }
+        }
+
+        .energy-scan-effect {
+            animation: energyScan 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Energy Scan Beam Effect - Faster and smoother */
+        @keyframes scanBeam {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            20% {
+                transform: translateY(-60%);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(0%);
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(60%);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+
+        .energy-scan-beam {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+            180deg,
+            transparent 0%,
+            rgba(0, 255, 255, 0.03) 10%,
+            rgba(0, 255, 255, 0.08) 20%,
+            rgba(0, 255, 255, 0.15) 30%,
+            rgba(0, 255, 255, 0.25) 40%,
+            rgba(0, 255, 255, 0.35) 50%,
+            rgba(0, 255, 255, 0.25) 60%,
+            rgba(0, 255, 255, 0.15) 70%,
+            rgba(0, 255, 255, 0.08) 80%,
+            rgba(0, 255, 255, 0.03) 90%,
+            transparent 100%
+            );
+
+            transform: translateY(-100%);
+            animation: scanBeam 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            pointer-events: none;
+            z-index: 10;
+            filter: blur(1px); /* Reduced blur for sharper effect */
+        }
+
+        /* Energy Pulse Effect - Faster */
+        @keyframes energyPulse {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+            40% {
+                width: 80px;
+                height: 80px;
+                opacity: 0.9;
+            }
+            70% {
+                width: 180px;
+                height: 180px;
+                opacity: 0.3;
+            }
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+
+        .energy-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle,
+                rgba(0, 255, 255, 0.4) 0%,
+                rgba(0, 255, 255, 0.2) 40%,
+                transparent 70%
+            );
+            transform: translate(-50%, -50%);
+            animation: energyPulse 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Data stream effect */
+        .data-stream {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 255, 255, 0.03) 10px,
+                rgba(0, 255, 255, 0.03) 20px
+            );
+            animation: dataStream 3s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes dataStream {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(20px); }
+        }
+
+        /* Loading text animation */
+        .loading-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0;
+            animation: fadeInOut 2s ease-in-out;
+            z-index: 3;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Responsive adjustments for the modal */
+        @media (max-width: 1600px) {
+            .generated-images-container {
+                width: 850px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .generated-images-container {
+                width: 700px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .generated-images-container {
+                width: 90%;
+                max-width: 600px;
+            }
+            /* Keep 4 columns but adjust gap */
+            .generated-images-grid {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .generated-images-modal {
+                left: 0; /* Full width on mobile */
+                width: 100%;
+            }
+            .generated-images-container {
+                width: 95%;
+                padding: 20px;
+            }
+            /* Reduce to 2 columns on mobile for better visibility */
+            .generated-images-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Single column on very small screens */
+            .generated-images-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
             }
         }
     </style>
@@ -948,6 +1346,27 @@
                 </div>
             </div>
 
+            <!-- Generated Images Modal -->
+            <div class="generated-images-modal" id="generatedImagesModal">
+                <div class="generated-images-container">
+                    <div class="loading-status" id="loadingStatus">INITIALIZING QUANTUM REPLICATION...</div>
+                    <div class="generated-images-header">
+                        <div class="generated-images-title">
+                            <i class="fas fa-atom"></i> REPLICATED IMAGES
+                        </div>
+                        <div class="generated-images-actions">
+                            <button class="btn btn-cyan" id="printFromModal">
+                                <i class="fas fa-print"></i> PRINT LAYOUT
+                            </button>
+                        </div>
+                    </div>
+                    <div class="generated-images-grid" id="generatedImagesGrid"></div>
+                    <div class="generated-images-close" id="closeGeneratedImages">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+            </div>
+
             <!-- Print Container (Hidden by default) -->
             <div class="print-container" id="printContainer" style="display: none;">
                 <div class="print-grid" id="printGrid"></div>
@@ -1017,9 +1436,6 @@
                             <button id="generateBtn" class="btn btn-cyan" disabled>
                                 <i class="fas fa-atom"></i> GENERATE REPLICAS
                             </button>
-                            <button id="printBtn" class="btn btn-info" style="display: none;">
-                                <i class="fas fa-print"></i> PRINT LAYOUT
-                            </button>
                         </div>
                         
                         <p class="print-info">
@@ -1027,10 +1443,10 @@
                         </p>
                     </div>
 
-                    <!-- Output Area -->
-                    <div id="printOutput">
+                    <!-- Output Area (Now Hidden) -->
+                    <div id="printOutput" style="display: none;">
                         <p class="placeholder-text">
-                            <i class="fas fa-inbox"></i> Replicated images will appear here, optimized for A4 printing.
+                            <i class="fas fa-inbox"></i> Replicated images will appear in a popup modal.
                         </p>
                     </div>
                 </div>
@@ -1054,7 +1470,6 @@
             const cropperSection = document.getElementById('cropperSection');
             const settingsSection = document.getElementById('settingsSection');
             const generateBtn = document.getElementById('generateBtn');
-            const printBtn = document.getElementById('printBtn');
             const printOutput = document.getElementById('printOutput');
             const loadingOverlay = document.getElementById('loadingOverlay');
             const printPreviewModal = document.getElementById('printPreviewModal');
@@ -1064,6 +1479,13 @@
             const cancelPrint = document.getElementById('cancelPrint');
             const printContainer = document.getElementById('printContainer');
             const printGrid = document.getElementById('printGrid');
+            
+            // New modal elements
+            const generatedImagesModal = document.getElementById('generatedImagesModal');
+            const generatedImagesGrid = document.getElementById('generatedImagesGrid');
+            const closeGeneratedImages = document.getElementById('closeGeneratedImages');
+            const printFromModal = document.getElementById('printFromModal');
+            const loadingStatus = document.getElementById('loadingStatus');
             
             // Input elements for live update
             const widthInInput = document.getElementById('widthInches');
@@ -1135,18 +1557,36 @@
 
                         cropper = new Cropper(imageToCrop, {
                             viewMode: 1,
-                            autoCropArea: 0.5,
+                            autoCropArea: 0.8, // Increased from 0.5 to 0.8 for better visibility
                             movable: true,
                             rotatable: false,
                             scalable: false,
-                            zoomable: false,
-                            zoomOnTouch: false,
-                            zoomOnWheel: false,
+                            zoomable: true, // Enable zooming for large images
+                            zoomOnTouch: true,
+                            zoomOnWheel: true,
                             cropBoxMovable: true,
                             cropBoxResizable: false,
+                            responsive: true, // Make the cropper responsive
+                            restore: true, // Restore the cropped area after resizing
+                            checkCrossOrigin: true, // Handle cross-origin images
                             ready: function() {
                                 // The scan animation is now applied via CSS to the image-container
                                 // No need to add it programmatically
+                                
+                                // Fit the image to the container
+                                const containerData = cropper.getContainerData();
+                                const imageData = cropper.getImageData();
+                                
+                                // Calculate the ratio to fit the image within the container
+                                const ratio = Math.min(
+                                    containerData.width / imageData.naturalWidth,
+                                    containerData.height / imageData.naturalHeight
+                                );
+                                
+                                // If the image is larger than the container, zoom it out to fit
+                                if (ratio < 1) {
+                                    cropper.zoomTo(ratio);
+                                }
                             }
                         });
 
@@ -1161,7 +1601,7 @@
                 }
             });
 
-            // 2. HANDLE GENERATION
+            // 2. HANDLE GENERATION - Now shows in modal with Energy Scan Reveal effect
             generateBtn.addEventListener('click', function() {
                 const count = parseInt(document.getElementById('copyCount').value, 10);
 
@@ -1219,16 +1659,107 @@
                         printOutput.appendChild(img);
                         generatedImages.push(finalImageSrc);
                     }
-
-                    printBtn.style.display = 'inline-block';
                     
                     // Hide loading overlay
                     loadingOverlay.classList.remove('active');
+                    
+                    // Show the generated images modal with Energy Scan Reveal effect
+                    showGeneratedImagesModal();
+                }, 500);
+            });
+
+            // Function to show generated images modal with Energy Scan Reveal effect
+            function showGeneratedImagesModal() {
+                // Clear previous images
+                generatedImagesGrid.innerHTML = '';
+                
+                // Show the modal with fade-in effect
+                generatedImagesModal.style.display = 'flex';
+                generatedImagesModal.style.alignItems = 'center';
+                generatedImagesModal.style.justifyContent = 'center';
+                
+                // Trigger reflow to ensure transition works
+                generatedImagesModal.offsetHeight;
+                
+                // Add active class for fade-in
+                setTimeout(() => {
+                    generatedImagesModal.classList.add('active');
+                }, 10);
+                
+                // Show loading status
+                loadingStatus.style.display = 'block';
+                
+                // Add images one by one with Energy Scan Reveal effect
+                generatedImages.forEach((imageSrc, index) => {
+                    setTimeout(() => {
+                        // Hide loading status after first image
+                        if (index === 0) {
+                            loadingStatus.style.display = 'none';
+                        }
+                        
+                        // Create image wrapper
+                        const imageWrapper = document.createElement('div');
+                        imageWrapper.className = 'generated-image-wrapper';
+                        
+                        // Create image
+                        const img = document.createElement('img');
+                        img.src = imageSrc;
+                        img.alt = `Replica ${index + 1}`;
+                        
+                        // Create energy scan beam
+                        const energyScanBeam = document.createElement('div');
+                        energyScanBeam.className = 'energy-scan-beam';
+                        
+                        // Create energy pulse
+                        const energyPulse = document.createElement('div');
+                        energyPulse.className = 'energy-pulse';
+                        
+                        // Append elements
+                        imageWrapper.appendChild(img);
+                        imageWrapper.appendChild(energyScanBeam);
+                        imageWrapper.appendChild(energyPulse);
+                        generatedImagesGrid.appendChild(imageWrapper);
+                        
+                        // Trigger Energy Scan Reveal effect with smooth transition
+                        setTimeout(() => {
+                            imageWrapper.classList.add('energy-scan-effect');
+                            setTimeout(() => {
+                                imageWrapper.classList.add('active');
+                            }, 100);
+                        }, 50);
+                    }, index * 300); // Increased delay for clearer one-by-one appearance
+                });
+            }
+
+            // Close generated images modal with fade-out effect
+            closeGeneratedImages.addEventListener('click', function() {
+                generatedImagesModal.classList.remove('active');
+                setTimeout(() => {
+                    generatedImagesModal.style.display = 'none';
+                }, 500);
+            });
+
+            // Print from modal
+            printFromModal.addEventListener('click', function() {
+                generatedImagesModal.classList.remove('active');
+                setTimeout(() => {
+                    generatedImagesModal.style.display = 'none';
+                    // Create a temporary print button to trigger the print functionality
+                    const tempPrintBtn = document.createElement('button');
+                    tempPrintBtn.id = 'tempPrintBtn';
+                    tempPrintBtn.style.display = 'none';
+                    document.body.appendChild(tempPrintBtn);
+                    
+                    // Trigger the print functionality
+                    triggerPrintPreview();
+                    
+                    // Remove the temporary button
+                    document.body.removeChild(tempPrintBtn);
                 }, 500);
             });
 
             // 3. HANDLE PRINT PREVIEW
-            printBtn.addEventListener('click', function() {
+            function triggerPrintPreview() {
                 if (generatedImages.length === 0) {
                     alert('Error: No images to print. Please generate replicas first.');
                     return;
@@ -1256,12 +1787,13 @@
                     printGrid.innerHTML = '';
 
                     // Set grid layout with explicit row and column gaps
-                    printPreviewGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                    // Always use 4 columns for print preview and print
+                    printPreviewGrid.style.gridTemplateColumns = `repeat(4, 1fr)`;
                     printPreviewGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
                     printPreviewGrid.style.rowGap = '24px';
                     printPreviewGrid.style.columnGap = '24px';
                     
-                    printGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                    printGrid.style.gridTemplateColumns = `repeat(4, 1fr)`;
                     printGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
                     printGrid.style.rowGap = '24px';
                     printGrid.style.columnGap = '24px';
@@ -1301,7 +1833,7 @@
                     // Hide loading overlay
                     loadingOverlay.classList.remove('active');
                 }, 500);
-            });
+            }
 
             // Close preview modal
             closePreview.addEventListener('click', function() {
