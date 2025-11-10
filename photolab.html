@@ -15,6 +15,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
@@ -486,7 +488,7 @@
             color: var(--text-secondary);
             font-size: 0.8em;
             font-family: monospace;
-            margin-top: -5px;
+            margin-top: 10px;
             margin-bottom: 10px;
         }
         
@@ -495,6 +497,16 @@
             font-size: 0.9em;
             text-align: center;
             margin-top: 1rem;
+        }
+        
+        /* Image info styles */
+        .image-info {
+            color: var(--text-secondary);
+            font-size: 0.8em;
+            font-family: monospace;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
         }
 
         /* --- Sci-Fi Buttons --- */
@@ -569,6 +581,44 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px var(--neon-pink);
             color: white;
+        }
+        
+        /* --- Download Button Style --- */
+        .btn-download {
+            background: linear-gradient(45deg, #00c851, #00ff88);
+            color: var(--cyber-dark);
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .btn-download::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-download:hover::before {
+            left: 100%;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5);
+            color: var(--cyber-dark);
         }
 
         /* --- Cropper Container --- */
@@ -1276,6 +1326,33 @@
                 gap: 15px;
             }
         }
+        
+        /* Unit Selection Dropdown Styles */
+        .unit-dropdown {
+            background-color: var(--cyber-dark);
+            border: 1px solid var(--border-glow);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 0.375rem 0.75rem;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        
+        .unit-dropdown:focus {
+            background-color: var(--cyber-dark);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--border-glow);
+            color: var(--text-primary);
+        }
+        
+        .unit-dropdown option {
+            background-color: var(--cyber-dark);
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -1342,7 +1419,7 @@
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="loading-content">
                     <div class="loading-spinner"></div>
-                    <div class="loading-text">PROCESSING...</div>
+                    <div class="loading-text" id="loadingText">PROCESSING...</div>
                 </div>
             </div>
 
@@ -1376,6 +1453,9 @@
                             <i class="fas fa-atom"></i> REPLICATED IMAGES
                         </div>
                         <div class="generated-images-actions">
+                            <button class="btn btn-download" id="downloadFromModal">
+                                <i class="fas fa-download"></i> DOWNLOAD PDF
+                            </button>
                             <button class="btn btn-cyan" id="printFromModal">
                                 <i class="fas fa-print"></i> PRINT LAYOUT
                             </button>
@@ -1420,23 +1500,40 @@
                             <div class="image-container">
                                 <img id="imageToCrop">
                             </div>
+                            <!-- Moved pixel dimensions display here -->
+                            <div id="dimensionDisplay" class="pixel-dimensions">1200 x 1800 px</div>
+                            <!-- Added image size information -->
+                            <div class="image-info">
+                                <span id="originalSize">Original: --</span>
+                                <span id="croppedSize">Cropped: --</span>
+                            </div>
                         </div>
 
                         <!-- Settings Section (Hidden until image is uploaded) -->
                         <div id="settingsSection" style="display: none;">
                             <div class="row g-3">
-                                <div class="col-md-3">
-                                    <label for="widthInches" class="form-label">
-                                        <i class="fas fa-arrows-alt-h"></i> Width (inches)
+                                <!-- Unit Selection Dropdown -->
+                                <div class="col-md-2">
+                                    <label for="unitSelect" class="form-label">
+                                        <i class="fas fa-ruler"></i> Unit
                                     </label>
-                                    <input type="number" class="form-control" id="widthInches" value="4" step="0.1">
-                                    <div id="pixelDimensions" class="pixel-dimensions">1200 x 1800 px</div>
+                                    <select id="unitSelect" class="form-control unit-dropdown">
+                                        <option value="inches">Inches</option>
+                                        <option value="pixels">Pixels</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <label for="heightInches" class="form-label">
-                                        <i class="fas fa-arrows-alt-v"></i> Height (inches)
+                                
+                                <div class="col-md-2">
+                                    <label for="widthInput" class="form-label">
+                                        <i class="fas fa-arrows-alt-h"></i> <span id="widthLabel">Width</span>
                                     </label>
-                                    <input type="number" class="form-control" id="heightInches" value="6" step="0.1">
+                                    <input type="number" class="form-control" id="widthInput" value="4" step="0.1">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="heightInput" class="form-label">
+                                        <i class="fas fa-arrows-alt-v"></i> <span id="heightLabel">Height</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="heightInput" value="6" step="0.1">
                                 </div>
                                 <div class="col-md-3">
                                     <label for="dpi" class="form-label">
@@ -1446,7 +1543,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label for="copyCount" class="form-label">
-                                        <i class="fas fa-clone"></i> Replication Count
+                                        <i class="fas fa-clone"></i> Number of Copies
                                     </label>
                                     <input type="number" class="form-control" id="copyCount" placeholder="e.g., 4, 6, 9" value="4" min="1">
                                 </div>
@@ -1487,6 +1584,8 @@
             let generatedImages = [];
             let originalImages = []; // Store original images without border/corner radius
             let imageDimensions = { width: 0, height: 0, widthMm: 0, heightMm: 0 };
+            let currentUnit = 'inches'; // Default unit
+            let originalFileSize = 0; // Store original file size
 
             const photoInput = document.getElementById('photoInput');
             const imageToCrop = document.getElementById('imageToCrop');
@@ -1495,6 +1594,7 @@
             const generateBtn = document.getElementById('generateBtn');
             const printOutput = document.getElementById('printOutput');
             const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
             const printPreviewModal = document.getElementById('printPreviewModal');
             const printPreviewGrid = document.getElementById('printPreviewGrid');
             const closePreview = document.getElementById('closePreview');
@@ -1508,13 +1608,24 @@
             const generatedImagesGrid = document.getElementById('generatedImagesGrid');
             const closeGeneratedImages = document.getElementById('closeGeneratedImages');
             const printFromModal = document.getElementById('printFromModal');
+            const downloadFromModal = document.getElementById('downloadFromModal');
             const loadingStatus = document.getElementById('loadingStatus');
             
+            // Unit selection elements
+            const unitSelect = document.getElementById('unitSelect');
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+            const widthLabel = document.getElementById('widthLabel');
+            const heightLabel = document.getElementById('heightLabel');
+            const dimensionDisplay = document.getElementById('dimensionDisplay');
+            
+            // Image size elements
+            const originalSizeElement = document.getElementById('originalSize');
+            const croppedSizeElement = document.getElementById('croppedSize');
+            
             // Input elements for live update
-            const widthInInput = document.getElementById('widthInches');
-            const heightInInput = document.getElementById('heightInches');
             const dpiInput = document.getElementById('dpi');
-            const pixelDimensionsDisplay = document.getElementById('pixelDimensions');
+            const copyCountInput = document.getElementById('copyCount');
 
             // Create floating particles
             function createParticles() {
@@ -1539,22 +1650,38 @@
             function updateCropBox() {
                 if (!cropper) return;
 
-                const widthIn = parseFloat(widthInInput.value) || 1;
-                const heightIn = parseFloat(heightInInput.value) || 1;
-                const dpi = parseInt(dpiInput.value) || 72;
+                let widthPx, heightPx;
+                
+                if (currentUnit === 'inches') {
+                    const widthIn = parseFloat(widthInput.value) || 1;
+                    const heightIn = parseFloat(heightInput.value) || 1;
+                    const dpi = parseInt(dpiInput.value) || 72;
 
-                const widthPx = Math.round(widthIn * dpi);
-                const heightPx = Math.round(heightIn * dpi);
-
-                // Update pixel dimension display
-                pixelDimensionsDisplay.textContent = `${widthPx} x ${heightPx} px`;
+                    widthPx = Math.round(widthIn * dpi);
+                    heightPx = Math.round(heightIn * dpi);
+                    
+                    // Update pixel dimension display
+                    dimensionDisplay.textContent = `${widthPx} x ${heightPx} px`;
+                } else {
+                    // Unit is pixels
+                    widthPx = parseInt(widthInput.value) || 100;
+                    heightPx = parseInt(heightInput.value) || 100;
+                    
+                    // Calculate equivalent inches for display
+                    const dpi = parseInt(dpiInput.value) || 72;
+                    const widthIn = (widthPx / dpi).toFixed(2);
+                    const heightIn = (heightPx / dpi).toFixed(2);
+                    
+                    // Update dimension display
+                    dimensionDisplay.textContent = `${widthIn}" x ${heightIn}" (${widthPx} x ${heightPx} px)`;
+                }
 
                 // Store image dimensions for later use
                 imageDimensions = {
                     width: widthPx,
                     height: heightPx,
-                    widthMm: widthIn * 25.4,
-                    heightMm: heightIn * 25.4
+                    widthMm: (widthPx / parseInt(dpiInput.value)) * 25.4,
+                    heightMm: (heightPx / parseInt(dpiInput.value)) * 25.4
                 };
 
                 // Set the aspect ratio and size of the crop box
@@ -1565,15 +1692,194 @@
                 });
             }
 
+            // --- Function to handle unit selection change ---
+            function handleUnitChange() {
+                currentUnit = unitSelect.value;
+                
+                if (currentUnit === 'inches') {
+                    // Switch to inches mode
+                    widthLabel.textContent = 'Width';
+                    heightLabel.textContent = 'Height';
+                    
+                    // Convert current pixel values to inches if needed
+                    const dpi = parseInt(dpiInput.value) || 72;
+                    const currentWidthPx = parseInt(widthInput.value) || 100;
+                    const currentHeightPx = parseInt(heightInput.value) || 100;
+                    
+                    // Only convert if the values seem to be in pixels (large numbers)
+                    if (currentWidthPx > 20 || currentHeightPx > 20) {
+                        widthInput.value = (currentWidthPx / dpi).toFixed(1);
+                        heightInput.value = (currentHeightPx / dpi).toFixed(1);
+                    }
+                    
+                    // Set step to 0.1 for decimal inches
+                    widthInput.step = '0.1';
+                    heightInput.step = '0.1';
+                } else {
+                    // Switch to pixels mode
+                    widthLabel.textContent = 'Width';
+                    heightLabel.textContent = 'Height';
+                    
+                    // Convert current inch values to pixels if needed
+                    const dpi = parseInt(dpiInput.value) || 72;
+                    const currentWidthIn = parseFloat(widthInput.value) || 1;
+                    const currentHeightIn = parseFloat(heightInput.value) || 1;
+                    
+                    // Only convert if the values seem to be in inches (small numbers)
+                    if (currentWidthIn < 20 || currentHeightIn < 20) {
+                        widthInput.value = Math.round(currentWidthIn * dpi);
+                        heightInput.value = Math.round(currentHeightIn * dpi);
+                    }
+                    
+                    // Set step to 1 for whole pixels
+                    widthInput.step = '1';
+                    heightInput.step = '1';
+                }
+                
+                // Update the crop box with the new unit
+                updateCropBox();
+            }
+
+            // --- Function to calculate file size from data URL ---
+            function calculateFileSize(dataUrl) {
+                // Remove the data URL prefix to get the base64 data
+                const base64 = dataUrl.split(',')[1];
+                // Calculate the size in bytes
+                const byteCharacters = atob(base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                return new Uint8Array(byteNumbers).length;
+            }
+
+            // --- Function to format file size ---
+            function formatFileSize(bytes) {
+                if (bytes < 1024) {
+                    return bytes + ' B';
+                } else if (bytes < 1024 * 1024) {
+                    return (bytes / 1024).toFixed(1) + ' KB';
+                } else {
+                    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                }
+            }
+
+            // --- Function to create and download PDF ---
+            async function createAndDownloadPDF() {
+                if (originalImages.length === 0) {
+                    alert('Error: No images to download. Please generate replicas first.');
+                    return;
+                }
+
+                // Show loading overlay
+                loadingOverlay.classList.add('active');
+                loadingText.textContent = 'CREATING PDF...';
+
+                try {
+                    // Initialize jsPDF with A4 dimensions (mm)
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    // Get dimensions for PDF layout
+                    let widthIn, heightIn;
+                    if (currentUnit === 'inches') {
+                        widthIn = parseFloat(widthInput.value);
+                        heightIn = parseFloat(heightInput.value);
+                    } else {
+                        const dpi = parseInt(dpiInput.value) || 72;
+                        widthIn = parseInt(widthInput.value) / dpi;
+                        heightIn = parseInt(heightInput.value) / dpi;
+                    }
+                    
+                    const dpi = parseInt(dpiInput.value) || 72;
+                    
+                    // Convert to mm for PDF
+                    const widthMm = widthIn * 25.4;
+                    const heightMm = heightIn * 25.4;
+                    
+                    // A4 dimensions with 2mm margin on each side
+                    const pageWidth = 210; // A4 width in mm
+                    const pageHeight = 297; // A4 height in mm
+                    const margin = 2; // 2mm margin
+                    const printableWidth = pageWidth - (2 * margin);
+                    const printableHeight = pageHeight - (2 * margin);
+                    
+                    // Calculate gap (convert 24px to mm assuming 96 DPI screen)
+                    const gapMm = 24 * 0.264583; // 24px = 6.35mm
+                    
+                    // Calculate how many images fit per row and column
+                    const cols = Math.floor((printableWidth + gapMm) / (widthMm + gapMm));
+                    const rows = Math.floor((printableHeight + gapMm) / (heightMm + gapMm));
+                    
+                    // Add images to PDF
+                    let currentX = margin;
+                    let currentY = margin;
+                    let imagesAdded = 0;
+                    
+                    for (let row = 0; row < rows && imagesAdded < originalImages.length; row++) {
+                        for (let col = 0; col < cols && imagesAdded < originalImages.length; col++) {
+                            if (imagesAdded >= originalImages.length) break;
+                            
+                            // Add image to PDF
+                            pdf.addImage(
+                                originalImages[imagesAdded],
+                                'JPEG',
+                                currentX,
+                                currentY,
+                                widthMm,
+                                heightMm
+                            );
+                            
+                            imagesAdded++;
+                            currentX += widthMm + gapMm;
+                        }
+                        
+                        // Reset X for new row and move Y down
+                        currentX = margin;
+                        currentY += heightMm + gapMm;
+                        
+                        // Add new page if needed
+                        if (currentY + heightMm > printableHeight + margin && imagesAdded < originalImages.length) {
+                            pdf.addPage();
+                            currentY = margin;
+                        }
+                    }
+                    
+                    // Generate filename with timestamp
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    const filename = `quantum-photos_${timestamp}.pdf`;
+                    
+                    // Save the PDF
+                    pdf.save(filename);
+                    
+                } catch (error) {
+                    console.error('Error creating PDF:', error);
+                    alert('Error: Failed to create PDF. Please try again.');
+                } finally {
+                    // Hide loading overlay
+                    loadingOverlay.classList.remove('active');
+                    loadingText.textContent = 'PROCESSING...';
+                }
+            }
+
             // --- Event Listeners for live updates ---
-            widthInInput.addEventListener('input', updateCropBox);
-            heightInInput.addEventListener('input', updateCropBox);
+            widthInput.addEventListener('input', updateCropBox);
+            heightInput.addEventListener('input', updateCropBox);
             dpiInput.addEventListener('input', updateCropBox);
+            unitSelect.addEventListener('change', handleUnitChange);
 
             // 1. HANDLE IMAGE UPLOAD
             photoInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    // Store original file size
+                    originalFileSize = file.size;
+                    originalSizeElement.textContent = 'Original: ' + formatFileSize(originalFileSize);
+                    
                     // Show loading overlay
                     loadingOverlay.classList.add('active');
                     
@@ -1618,6 +1924,13 @@
                                 if (ratio < 1) {
                                     cropper.zoomTo(ratio);
                                 }
+                                
+                                // Calculate and display cropped image size
+                                updateCroppedSize();
+                            },
+                            crop: function() {
+                                // Update cropped size when crop box changes
+                                updateCroppedSize();
                             }
                         });
 
@@ -1631,6 +1944,24 @@
                     reader.readAsDataURL(file);
                 }
             });
+
+            // Function to update cropped image size
+            function updateCroppedSize() {
+                if (!cropper) return;
+                
+                // Get the cropped canvas
+                const croppedCanvas = cropper.getCroppedCanvas();
+                if (!croppedCanvas) return;
+                
+                // Convert to data URL
+                const croppedDataUrl = croppedCanvas.toDataURL('image/jpeg', 0.95);
+                
+                // Calculate file size
+                const croppedSize = calculateFileSize(croppedDataUrl);
+                
+                // Update the display
+                croppedSizeElement.textContent = 'Cropped: ' + formatFileSize(croppedSize);
+            }
 
             // Function to detect if an image has a white background
             function hasWhiteBackground(canvas) {
@@ -1749,8 +2080,18 @@
             // 2. HANDLE GENERATION - Now shows in modal with Energy Scan Reveal effect
             generateBtn.addEventListener('click', function() {
                 const count = parseInt(document.getElementById('copyCount').value, 10);
-                const widthIn = parseFloat(widthInInput.value);
-                const heightIn = parseFloat(heightInInput.value);
+                let widthIn, heightIn;
+                
+                if (currentUnit === 'inches') {
+                    widthIn = parseFloat(widthInput.value);
+                    heightIn = parseFloat(heightInput.value);
+                } else {
+                    // Convert pixels to inches for internal calculations
+                    const dpi = parseInt(dpiInput.value) || 72;
+                    widthIn = parseInt(widthInput.value) / dpi;
+                    heightIn = parseInt(heightInput.value) / dpi;
+                }
+                
                 const dpi = parseInt(dpiInput.value) || 72;
                 
                 // Calculate pixel dimensions for the specified DPI
@@ -1799,6 +2140,10 @@
                     
                     // Convert to data URL without border or corner radius
                     const originalImageSrc = finalCanvas.toDataURL('image/jpeg', 0.95);
+                    
+                    // Update the cropped size display
+                    const croppedSize = calculateFileSize(originalImageSrc);
+                    croppedSizeElement.textContent = 'Cropped: ' + formatFileSize(croppedSize);
                     
                     printOutput.innerHTML = '';
                     generatedImages = [];
@@ -1925,6 +2270,11 @@
                 }, 500);
             });
 
+            // Download from modal - Create PDF with A4 layout
+            downloadFromModal.addEventListener('click', function() {
+                createAndDownloadPDF();
+            });
+
             // Print from modal - Now directly triggers print without preview
             printFromModal.addEventListener('click', function() {
                 if (originalImages.length === 0) {
@@ -1936,8 +2286,18 @@
                 loadingOverlay.classList.add('active');
 
                 setTimeout(async () => {
-                    const widthIn = parseFloat(widthInInput.value);
-                    const heightIn = parseFloat(heightInInput.value);
+                    let widthIn, heightIn;
+                    
+                    if (currentUnit === 'inches') {
+                        widthIn = parseFloat(widthInput.value);
+                        heightIn = parseFloat(heightInput.value);
+                    } else {
+                        // Convert pixels to inches for internal calculations
+                        const dpi = parseInt(dpiInput.value) || 72;
+                        widthIn = parseInt(widthInput.value) / dpi;
+                        heightIn = parseInt(heightInput.value) / dpi;
+                    }
+                    
                     const dpi = parseInt(dpiInput.value) || 72;
                     
                     // --- A4 LAYOUT CALCULATION (with 2mm margins and 24px gaps) ---
