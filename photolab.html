@@ -507,6 +507,7 @@
             margin-top: 10px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
         /* --- Sci-Fi Buttons --- */
@@ -618,6 +619,49 @@
         .btn-download:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5);
+            color: var(--cyber-dark);
+        }
+        
+        /* --- Tiny Download Button --- */
+        .btn-tiny-download {
+            background: linear-gradient(45deg, #00c851, #00ff88);
+            color: var(--cyber-dark);
+            font-weight: 700;
+            border: none;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .btn-tiny-download::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-tiny-download:hover::before {
+            left: 100%;
+        }
+
+        .btn-tiny-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0, 255, 136, 0.5);
             color: var(--cyber-dark);
         }
 
@@ -1505,7 +1549,12 @@
                             <!-- Added image size information -->
                             <div class="image-info">
                                 <span id="originalSize">Original: --</span>
-                                <span id="croppedSize">Cropped: --</span>
+                                <div id="croppedSizeContainer">
+                                    <span id="croppedSize">Cropped: --</span>
+                                    <button id="instantDownloadBtn" class="btn-tiny-download" style="display: none;">
+                                        <i class="fas fa-download"></i> DOWNLOAD
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1586,6 +1635,7 @@
             let imageDimensions = { width: 0, height: 0, widthMm: 0, heightMm: 0 };
             let currentUnit = 'inches'; // Default unit
             let originalFileSize = 0; // Store original file size
+            let currentCroppedImage = null; // Store the current cropped image for instant download
 
             const photoInput = document.getElementById('photoInput');
             const imageToCrop = document.getElementById('imageToCrop');
@@ -1622,6 +1672,8 @@
             // Image size elements
             const originalSizeElement = document.getElementById('originalSize');
             const croppedSizeElement = document.getElementById('croppedSize');
+            const croppedSizeContainer = document.getElementById('croppedSizeContainer');
+            const instantDownloadBtn = document.getElementById('instantDownloadBtn');
             
             // Input elements for live update
             const dpiInput = document.getElementById('dpi');
@@ -1764,6 +1816,30 @@
                 }
             }
 
+            // --- Function to download the cropped image ---
+            function downloadCroppedImage() {
+                if (!currentCroppedImage) {
+                    alert('Error: No cropped image available for download.');
+                    return;
+                }
+                
+                // Create a temporary link element
+                const link = document.createElement('a');
+                
+                // Generate a filename with timestamp
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `cropped-image_${timestamp}.jpg`;
+                
+                // Set the download attributes
+                link.href = currentCroppedImage;
+                link.download = filename;
+                
+                // Trigger the download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
             // --- Function to create and download PDF ---
             async function createAndDownloadPDF() {
                 if (originalImages.length === 0) {
@@ -1871,6 +1947,9 @@
             heightInput.addEventListener('input', updateCropBox);
             dpiInput.addEventListener('input', updateCropBox);
             unitSelect.addEventListener('change', handleUnitChange);
+            
+            // Event listener for the instant download button
+            instantDownloadBtn.addEventListener('click', downloadCroppedImage);
 
             // 1. HANDLE IMAGE UPLOAD
             photoInput.addEventListener('change', function(e) {
@@ -1956,11 +2035,17 @@
                 // Convert to data URL
                 const croppedDataUrl = croppedCanvas.toDataURL('image/jpeg', 0.95);
                 
+                // Store the current cropped image for instant download
+                currentCroppedImage = croppedDataUrl;
+                
                 // Calculate file size
                 const croppedSize = calculateFileSize(croppedDataUrl);
                 
                 // Update the display
                 croppedSizeElement.textContent = 'Cropped: ' + formatFileSize(croppedSize);
+                
+                // Show the instant download button
+                instantDownloadBtn.style.display = 'inline-flex';
             }
 
             // Function to detect if an image has a white background
@@ -2144,6 +2229,9 @@
                     // Update the cropped size display
                     const croppedSize = calculateFileSize(originalImageSrc);
                     croppedSizeElement.textContent = 'Cropped: ' + formatFileSize(croppedSize);
+                    
+                    // Store the current cropped image for instant download
+                    currentCroppedImage = originalImageSrc;
                     
                     printOutput.innerHTML = '';
                     generatedImages = [];
