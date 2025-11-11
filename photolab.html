@@ -683,7 +683,13 @@
             position: relative;
             overflow: hidden;
             width: 100%;
-            height: 100%;
+            height: 600px; /* Fixed height for the cropper container */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--cyber-dark);
+            border: 1px solid var(--border-glow);
+            border-radius: 8px;
         }
 
         /* Scan animation specifically for the image container */
@@ -1989,7 +1995,7 @@
                                 // The scan animation is now applied via CSS to the image-container
                                 // No need to add it programmatically
                                 
-                                // Fit the image to the container
+                                // Get the container dimensions
                                 const containerData = cropper.getContainerData();
                                 const imageData = cropper.getImageData();
                                 
@@ -1999,10 +2005,15 @@
                                     containerData.height / imageData.naturalHeight
                                 );
                                 
-                                // If the image is larger than the container, zoom it out to fit
-                                if (ratio < 1) {
-                                    cropper.zoomTo(ratio);
-                                }
+                                // Always zoom to fit the image within the container
+                                // This ensures the image fits within the fixed-size container
+                                cropper.zoomTo(ratio);
+                                
+                                // Center the image in the container
+                                cropper.setCanvasData({
+                                    left: (containerData.width - imageData.width * ratio) / 2,
+                                    top: (containerData.height - imageData.height * ratio) / 2
+                                });
                                 
                                 // Calculate and display cropped image size
                                 updateCroppedSize();
